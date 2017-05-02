@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "90E8460312158AFDEF86D068C0E3F0A31F38FE42",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "A3DDA629D3578FC96F2732D4B3FADA5EE3A96FF2" : 9223372036854775807,
+    "90E8460312158AFDEF86D068C0E3F0A31F38FE42" : 9223372036854775807
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "081B57BD-1A9D-463A-B745-ADB3CCB591E3",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "A3DDA629D3578FC96F2732D4B3FADA5EE3A96FF2" : "PND(IOS)\/Party%20Next%20Door\/",
+    "90E8460312158AFDEF86D068C0E3F0A31F38FE42" : "Chariot\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "SeniorProject",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "SeniorProject.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/jacariBoboye\/SeniorProject.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "90E8460312158AFDEF86D068C0E3F0A31F38FE42"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/jacariBoboye\/houseParty.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "A3DDA629D3578FC96F2732D4B3FADA5EE3A96FF2"
+    }
+  ]
+}
