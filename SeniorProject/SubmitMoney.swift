@@ -28,6 +28,7 @@ class SubmitMoney: UIViewController{
     self.navigationController?.navigationBar.isTranslucent = false
     self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "Products", style: .plain, target: nil, action: nil)
     print(organization ?? "error: unknown organization")
+    textField1.becomeFirstResponder()
   }
   
   

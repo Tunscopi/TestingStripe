@@ -100,11 +100,15 @@ class PerformPaymentViewController: UIViewController, STPPaymentContextDelegate 
   override func viewDidLoad() {
     super.viewDidLoad()
     
+    let backButton = UIBarButtonItem(title: "Cancel", style: UIBarButtonItemStyle.plain, target: self, action: #selector(goBack))
+    navigationItem.leftBarButtonItem = backButton
+    
     self.view.backgroundColor = self.theme.primaryBackgroundColor
     var red: CGFloat = 0
     self.theme.primaryBackgroundColor.getRed(&red, green: nil, blue: nil, alpha: nil)
     self.activityIndicator.activityIndicatorViewStyle = red < 0.5 ? .white : .gray
-    
+    self.navigationItem.title = "Make a Donation"
+
     //self.productImage.font = UIFont.systemFont(ofSize: 70)
     self.view.addSubview(self.donationRow)
     self.view.addSubview(self.paymentRow)
@@ -143,6 +147,10 @@ class PerformPaymentViewController: UIViewController, STPPaymentContextDelegate 
   @objc func didTapConfirm() {
     self.paymentInProgress = true
     self.paymentContext.requestPayment()
+  }
+  
+  func goBack(){
+    dismiss(animated: true, completion: nil)
   }
   
   
