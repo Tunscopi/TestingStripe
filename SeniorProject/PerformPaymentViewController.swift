@@ -21,9 +21,11 @@ class PerformPaymentViewController: UIViewController, STPPaymentContextDelegate 
   let paymentContext: STPPaymentContext
   let theme: STPTheme
   let paymentRow: CheckoutRowView
+  let donationRow: CheckoutRowView
   let confirmButton: ConfirmButton
   let rowHeight: CGFloat = 44
   let activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: .gray)
+  let numberFormatter: NumberFormatter
   
   var paymentInProgress: Bool = false {
     didSet{
@@ -52,7 +54,7 @@ class PerformPaymentViewController: UIViewController, STPPaymentContextDelegate 
     MyAPIClient.sharedClient.baseURLString = self.backendBaseURL
     
     
-    // Included here for the sake of readability, should set up your configuration and theme earlier, preferably in App Delegate.
+    // Included here for the sake of readability, should set up your configuration and theme earlier, preferably in AppDelegate.
     let config = STPPaymentConfiguration.shared()
     config.publishableKey = self.stripePublishableKey
     
@@ -69,12 +71,20 @@ class PerformPaymentViewController: UIViewController, STPPaymentContextDelegate 
     
     self.paymentRow = CheckoutRowView(title: "Payment", detail: "Select Payment",
                                       theme: settings.theme)
-    
+    self.donationRow = CheckoutRowView(title: "Donation", detail: "", tappable: false,
+                                       theme: settings.theme)
     self.confirmButton = ConfirmButton(enabled: true, theme: settings.theme)
+    
     var localeComponents: [String: String] = [
       NSLocale.Key.currencyCode.rawValue: self.paymentCurrency,
       ]
     localeComponents[NSLocale.Key.languageCode.rawValue] = NSLocale.preferredLanguages.first
+    let localeID = NSLocale.localeIdentifier(fromComponents: localeComponents)
+    let numberFormatter = NumberFormatter()
+    numberFormatter.locale = Locale(identifier: localeID)
+    numberFormatter.numberStyle = .currency
+    numberFormatter.usesGroupingSeparator = true
+    self.numberFormatter = numberFormatter
     
     super.init(nibName: nil, bundle: nil)
     
@@ -94,38 +104,39 @@ class PerformPaymentViewController: UIViewController, STPPaymentContextDelegate 
     var red: CGFloat = 0
     self.theme.primaryBackgroundColor.getRed(&red, green: nil, blue: nil, alpha: nil)
     self.activityIndicator.activityIndicatorViewStyle = red < 0.5 ? .white : .gray
-    self.navigationItem.title = "Emoji Apparel"
     
     //self.productImage.font = UIFont.systemFont(ofSize: 70)
-    //self.view.addSubview(self.totalRow)
+    self.view.addSubview(self.donationRow)
     self.view.addSubview(self.paymentRow)
-    //self.view.addSubview(self.shippingRow)
     //self.view.addSubview(self.productImage)
     self.view.addSubview(self.confirmButton)
     self.view.addSubview(self.activityIndicator)
     self.activityIndicator.alpha = 0
     self.confirmButton.addTarget(self, action: #selector(didTapConfirm), for: .touchUpInside)
-    //self.totalRow.detail = self.numberFormatter.string(from: NSNumber(value: Float(self.paymentContext.paymentAmount)/100))!
+    self.donationRow.detail = self.numberFormatter.string(from: NSNumber(value: Float(self.paymentContext.paymentAmount)/100))!
     self.paymentRow.onTap = {
       self.paymentContext.pushPaymentMethodsViewController()
     }
+    // If you so wish to add shipping info. eg. for a gift, etc
+    //self.view.addSubview(self.shippingRow)
     //self.shippingRow.onTap = { self.paymentContext.pushShippingViewController()}
   }
-  
+
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     let width = self.view.bounds.width
     //self.productImage.sizeToFit()
     //self.productImage.center = CGPoint(x: width/2.0,
       //                                 y: self.productImage.bounds.height/2.0 + rowHeight)
-    self.paymentRow.frame = CGRect(x: 0, y: 0 + rowHeight,
+    self.paymentRow.frame = CGRect(x: 0, y: 0 + self.navigationController!.navigationBar.frame.height + rowHeight,
                                    width: width, height: rowHeight)
+    self.donationRow.frame = CGRect(x: 0, y: self.paymentRow.frame.maxY,
+                                 width: width, height: rowHeight)
+    // If you so wish to add shipping info. eg. for a gift, etc
     //self.shippingRow.frame = CGRect(x: 0, y: self.paymentRow.frame.maxY,
-      //                              width: width, height: rowHeight)
-    //self.totalRow.frame = CGRect(x: 0, y: self.shippingRow.frame.maxY,
-      //                           width: width, height: rowHeight)
+    //                              width: width, height: rowHeight)
     self.confirmButton.frame = CGRect(x: 0, y: 0, width: 88, height: 44)
-    self.confirmButton.center = CGPoint(x: width/2.0, y: self.paymentRow.frame.maxY + rowHeight*1.5)
+    self.confirmButton.center = CGPoint(x: width/2.0, y: self.donationRow.frame.maxY + rowHeight*1.5)
     self.activityIndicator.center = self.confirmButton.center
   }
   
@@ -172,6 +183,7 @@ class PerformPaymentViewController: UIViewController, STPPaymentContextDelegate 
     else {
       self.paymentRow.detail = "Select Payment"
     }
+    self.donationRow.detail = self.numberFormatter.string(from: NSNumber(value: Float(self.paymentContext.paymentAmount)/100))!
   }
   
   func paymentContext(_ paymentContext: STPPaymentContext, didFailToLoadWithError error: Error) {

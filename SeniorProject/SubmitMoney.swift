@@ -45,21 +45,11 @@ class SubmitMoney: UIViewController{
   }
   @IBAction func subBTN(_ sender: Any) {
     pushToBase()
-    //let alert = SCLAlertView()
-    //alert.showSuccess("Thank you for your gift!", subTitle: "")
     
-    let performPaymentViewController = PerformPaymentViewController(donationAmount: 10000,
-                                                                    settings: self.settingsVC.settings)
-    //let navController = UINavigationController(rootViewController: PerformPaymentViewController(donationAmount: Int(textField1.text!)!,settings: self.settingsVC.settings))
-    self.present(performPaymentViewController, animated: true, completion: nil)
-    
-
+    // Present payment confirmation
+    let navController = UINavigationController(rootViewController: PerformPaymentViewController(donationAmount: Int(textField1.text!)!,settings: self.settingsVC.settings))
+    self.present(navController, animated: true, completion: nil)
   }
-  
-  
-  
-  
-  
     
 }
 
