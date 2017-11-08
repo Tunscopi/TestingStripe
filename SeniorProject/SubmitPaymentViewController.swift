@@ -33,7 +33,8 @@ class SubmitPaymentViewController: UIViewController {
         dismiss(animated: true, completion: nil)
     }
 
-    func loadVC(){
+  
+  func loadVC(){
         let ref = FIRDatabase.database().reference()
         let storageRef = FIRStorage.storage().reference()
         ref.child("NewsFeed").child(objectID).observe(.value, with: { (snapshot) in
@@ -48,13 +49,16 @@ class SubmitPaymentViewController: UIViewController {
 
             self.totalAmountPledged.text = "$\(((snapshotValue!["CurrentAmountPledged"] as? String)!))"
             self.daysLeftLBL.text = ((snapshotValue!["Date"] as? String)!)
-            var mountRef = storageRef.child("NewsFeedImg").child((self.ximage))
+            let mountRef = storageRef.child("NewsFeedImg").child((self.ximage))
 
             DispatchQueue.main.async {
                 self.campaignImage.sd_setImage(with: mountRef)
             }
         })}
 
-    
+  override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+    let submitVC = segue.destination as! SubmitMoney
+    submitVC.orglabel = self.campaignTitleLBL.text!
+  }
 
 }

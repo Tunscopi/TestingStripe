@@ -6,8 +6,8 @@ target 'SeniorProject' do
   use_frameworks!
 
   # Pods for SeniorProject
-pod 'Stripe', '~> 5.1.4'
 pod 'AFNetworking', '~> 2.5.4'
+pod 'Alamofire'
 pod 'RAMAnimatedTabBarController', "~> 2.0.13"
 pod 'Firebase'
 pod 'Firebase/Database'
@@ -16,5 +16,6 @@ pod 'FirebaseUI/Storage'
 pod 'Firebase/Storage'
 pod 'Firebase/Auth'
 pod 'SCLAlertView'
+pod 'Stripe'
 
 end

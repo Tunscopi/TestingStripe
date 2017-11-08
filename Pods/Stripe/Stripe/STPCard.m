@@ -7,139 +7,119 @@
 //
 
 #import "STPCard.h"
-#import "StripeError.h"
-#import "STPCardValidator.h"
+#import "STPCard+Private.h"
+
+#import "NSDictionary+Stripe.h"
+#import "STPImageLibrary+Private.h"
+#import "STPImageLibrary.h"
+
+NS_ASSUME_NONNULL_BEGIN
 
 @interface STPCard ()
 
-@property (nonatomic, readwrite) NSString *cardId;
-@property (nonatomic, readwrite) NSString *last4;
-@property (nonatomic, readwrite) NSString *dynamicLast4;
-@property (nonatomic, readwrite) STPCardBrand brand;
-@property (nonatomic, readwrite) STPCardFundingType funding;
-@property (nonatomic, readwrite) NSString *fingerprint;
-@property (nonatomic, readwrite) NSString *country;
+@property (nonatomic, copy) NSString *stripeID;
+
+@property (nonatomic, copy, nullable, readwrite) NSString *name;
+@property (nonatomic, copy, readwrite) NSString *last4;
+@property (nonatomic, copy, nullable, readwrite) NSString *dynamicLast4;
+@property (nonatomic, assign, readwrite) STPCardBrand brand;
+@property (nonatomic, assign, readwrite) STPCardFundingType funding;
+@property (nonatomic, copy, nullable, readwrite) NSString *country;
+@property (nonatomic, copy, nullable, readwrite) NSString *currency;
+@property (nonatomic, assign, readwrite) NSUInteger expMonth;
+@property (nonatomic, assign, readwrite) NSUInteger expYear;
+@property (nonatomic, strong, readwrite) STPAddress *address;
+@property (nonatomic, copy, nullable, readwrite) NSDictionary<NSString *, NSString *> *metadata;
+@property (nonatomic, copy, readwrite) NSDictionary *allResponseFields;
+
+// See STPCard+Private.h
 
 @end
 
 @implementation STPCard
 
-- (instancetype)init {
-    self = [super init];
-    if (self) {
-        _brand = STPCardBrandUnknown;
-        _funding = STPCardFundingTypeOther;
-    }
+#pragma mark - STPCardBrand
 
-    return self;
-}
-
-- (NSString *)last4 {
-    if (_last4) {
-        return _last4;
-    } else if (self.number && self.number.length >= 4) {
-        return [self.number substringFromIndex:(self.number.length - 4)];
++ (STPCardBrand)brandFromString:(NSString *)string {
+    NSString *brand = [string lowercaseString];
+    if ([brand isEqualToString:@"visa"]) {
+        return STPCardBrandVisa;
+    } else if ([brand isEqualToString:@"american express"]) {
+        return STPCardBrandAmex;
+    } else if ([brand isEqualToString:@"mastercard"]) {
+        return STPCardBrandMasterCard;
+    } else if ([brand isEqualToString:@"discover"]) {
+        return STPCardBrandDiscover;
+    } else if ([brand isEqualToString:@"jcb"]) {
+        return STPCardBrandJCB;
+    } else if ([brand isEqualToString:@"diners club"]) {
+        return STPCardBrandDinersClub;
     } else {
-        return nil;
+        return STPCardBrandUnknown;
     }
 }
 
-- (STPCardBrand)brand {
-    if (_brand == STPCardBrandUnknown) {
-        return [STPCardValidator brandForNumber:self.number];
-    }
-    return _brand;
-}
-
-- (NSString *)type {
-    switch (self.brand) {
-    case STPCardBrandAmex:
-        return @"American Express";
-    case STPCardBrandDinersClub:
-        return @"Diners Club";
-    case STPCardBrandDiscover:
-        return @"Discover";
-    case STPCardBrandJCB:
-        return @"JCB";
-    case STPCardBrandMasterCard:
-        return @"MasterCard";
-    case STPCardBrandVisa:
-        return @"Visa";
-    default:
-        return @"Unknown";
++ (NSString *)stringFromBrand:(STPCardBrand)brand {
+    switch (brand) {
+        case STPCardBrandAmex:
+            return @"American Express";
+        case STPCardBrandDinersClub:
+            return @"Diners Club";
+        case STPCardBrandDiscover:
+            return @"Discover";
+        case STPCardBrandJCB:
+            return @"JCB";
+        case STPCardBrandMasterCard:
+            return @"MasterCard";
+        case STPCardBrandVisa:
+            return @"Visa";
+        case STPCardBrandUnknown:
+            return @"Unknown";
     }
 }
 
-- (BOOL)validateNumber:(id *)ioValue error:(NSError **)outError {
-    if (*ioValue == nil) {
-        return [self.class handleValidationErrorForParameter:@"number" error:outError];
-    }
-    NSString *ioValueString = (NSString *)*ioValue;
-    
-    if ([STPCardValidator validationStateForNumber:ioValueString validatingCardBrand:NO] != STPCardValidationStateValid) {
-        return [self.class handleValidationErrorForParameter:@"number" error:outError];
-    }
-    return YES;
+#pragma mark - STPCardFundingType
+
++ (NSDictionary <NSString *, NSNumber *> *)stringToFundingMapping {
+    return @{
+             @"credit": @(STPCardFundingTypeCredit),
+             @"debit": @(STPCardFundingTypeDebit),
+             @"prepaid": @(STPCardFundingTypePrepaid),
+             };
 }
 
-- (BOOL)validateCvc:(id *)ioValue error:(NSError **)outError {
-    if (*ioValue == nil) {
-        return [self.class handleValidationErrorForParameter:@"number" error:outError];
++ (STPCardFundingType)fundingFromString:(NSString *)string {
+    NSString *key = [string lowercaseString];
+    NSNumber *fundingNumber = [self stringToFundingMapping][key];
+
+    if (fundingNumber) {
+        return (STPCardFundingType)[fundingNumber integerValue];
     }
-    NSString *ioValueString = (NSString *)*ioValue;
-    
-    if ([STPCardValidator validationStateForCVC:ioValueString cardBrand:self.brand] != STPCardValidationStateValid) {
-        return [self.class handleValidationErrorForParameter:@"cvc" error:outError];
-    }
-    return YES;
+
+    return STPCardFundingTypeOther;
 }
 
-- (BOOL)validateExpMonth:(id *)ioValue error:(NSError **)outError {
-    if (*ioValue == nil) {
-        return [self.class handleValidationErrorForParameter:@"expMonth" error:outError];
-    }
-    NSString *ioValueString = [(NSString *)*ioValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-    
-    if ([STPCardValidator validationStateForExpirationMonth:ioValueString] != STPCardValidationStateValid) {
-        return [self.class handleValidationErrorForParameter:@"expMonth" error:outError];
-    }
-    return YES;
++ (nullable NSString *)stringFromFunding:(STPCardFundingType)funding {
+    return [[[self stringToFundingMapping] allKeysForObject:@(funding)] firstObject];
 }
 
-- (BOOL)validateExpYear:(id *)ioValue error:(NSError **)outError {
-    if (*ioValue == nil) {
-        return [self.class handleValidationErrorForParameter:@"expYear" error:outError];
-    }
-    NSString *ioValueString = [(NSString *)*ioValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-    
-    NSString *monthString = [@(self.expMonth) stringValue];
-    if ([STPCardValidator validationStateForExpirationYear:ioValueString inMonth:monthString] != STPCardValidationStateValid) {
-        return [self.class handleValidationErrorForParameter:@"expYear" error:outError];
-    }
-    return YES;
+#pragma mark -
+
+- (BOOL)isApplePayCard {
+    return [self.allResponseFields[@"tokenization_method"] isEqualToString:@"apple_pay"];
 }
 
-- (BOOL)validateCardReturningError:(NSError **)outError {
-    // Order matters here
-    NSString *numberRef = [self number];
-    NSString *expMonthRef = [NSString stringWithFormat:@"%lu", (unsigned long)[self expMonth]];
-    NSString *expYearRef = [NSString stringWithFormat:@"%lu", (unsigned long)[self expYear]];
-    NSString *cvcRef = [self cvc];
+#pragma mark - Equality
 
-    // Make sure expMonth, expYear, and number are set.  Validate CVC if it is provided
-    return [self validateNumber:&numberRef error:outError] && [self validateExpYear:&expYearRef error:outError] &&
-           [self validateExpMonth:&expMonthRef error:outError] && (cvcRef == nil || [self validateCvc:&cvcRef error:outError]);
-}
-
-- (BOOL)isEqual:(id)other {
+- (BOOL)isEqual:(nullable id)other {
     return [self isEqualToCard:other];
 }
 
 - (NSUInteger)hash {
-    return [self.number hash];
+    return [self.stripeID hash];
 }
 
-- (BOOL)isEqualToCard:(STPCard *)other {
+- (BOOL)isEqualToCard:(nullable STPCard *)other {
     if (self == other) {
         return YES;
     }
@@ -147,134 +127,155 @@
     if (!other || ![other isKindOfClass:self.class]) {
         return NO;
     }
-
-    return self.expMonth == other.expMonth && self.expYear == other.expYear && [self.number ?: @"" isEqualToString:other.number ?: @""] &&
-           [self.cvc ?: @"" isEqualToString:other.cvc ?: @""] && [self.name ?: @"" isEqualToString:other.name ?: @""] &&
-           [self.addressLine1 ?: @"" isEqualToString:other.addressLine1 ?: @""] && [self.addressLine2 ?: @"" isEqualToString:other.addressLine2 ?: @""] &&
-           [self.addressCity ?: @"" isEqualToString:other.addressCity ?: @""] && [self.addressState ?: @"" isEqualToString:other.addressState ?: @""] &&
-           [self.addressZip ?: @"" isEqualToString:other.addressZip ?: @""] && [self.addressCountry ?: @"" isEqualToString:other.addressCountry ?: @""];
+    
+    return [self.stripeID isEqualToString:other.stripeID];
 }
 
-#pragma mark Private Helpers
-+ (BOOL)handleValidationErrorForParameter:(NSString *)parameter error:(NSError **)outError {
-    if (outError != nil) {
-        if ([parameter isEqualToString:@"number"]) {
-            *outError = [self createErrorWithMessage:STPCardErrorInvalidNumberUserMessage
-                                           parameter:parameter
-                                       cardErrorCode:STPInvalidNumber
-                                     devErrorMessage:@"Card number must be between 10 and 19 digits long and Luhn valid."];
-        } else if ([parameter isEqualToString:@"cvc"]) {
-            *outError = [self createErrorWithMessage:STPCardErrorInvalidCVCUserMessage
-                                           parameter:parameter
-                                       cardErrorCode:STPInvalidCVC
-                                     devErrorMessage:@"Card CVC must be numeric, 3 digits for Visa, Discover, MasterCard, JCB, and Discover cards, and 3 or 4 "
-                                     @"digits for American Express cards."];
-        } else if ([parameter isEqualToString:@"expMonth"]) {
-            *outError = [self createErrorWithMessage:STPCardErrorInvalidExpMonthUserMessage
-                                           parameter:parameter
-                                       cardErrorCode:STPInvalidExpMonth
-                                     devErrorMessage:@"expMonth must be less than 13"];
-        } else if ([parameter isEqualToString:@"expYear"]) {
-            *outError = [self createErrorWithMessage:STPCardErrorInvalidExpYearUserMessage
-                                           parameter:parameter
-                                       cardErrorCode:STPInvalidExpYear
-                                     devErrorMessage:@"expYear must be this year or a year in the future"];
-        } else {
-            // This should not be possible since this is a private method so we
-            // know exactly how it is called.  We use STPAPIError for all errors
-            // that are unexpected within the bindings as well.
-            *outError = [[NSError alloc] initWithDomain:StripeDomain
-                                                   code:STPAPIError
-                                               userInfo:@{
-                                                   NSLocalizedDescriptionKey: STPUnexpectedError,
-                                                   STPErrorMessageKey: @"There was an error within the Stripe client library when trying to generate the "
-                                                   @"proper validation error. Contact support@stripe.com if you see this."
-                                               }];
-        }
+#pragma mark - Description
+
+- (NSString *)description {
+    NSArray *props = @[
+                       // Object
+                       [NSString stringWithFormat:@"%@: %p", NSStringFromClass([self class]), self],
+
+                       // Identifier
+                       [NSString stringWithFormat:@"stripeID = %@", self.stripeID],
+
+                       // Basic card details
+                       [NSString stringWithFormat:@"brand = %@", [self.class stringFromBrand:self.brand]],
+                       [NSString stringWithFormat:@"last4 = %@", self.last4],
+                       [NSString stringWithFormat:@"expMonth = %lu", (unsigned long)self.expMonth],
+                       [NSString stringWithFormat:@"expYear = %lu", (unsigned long)self.expYear],
+                       [NSString stringWithFormat:@"funding = %@", ([self.class stringFromFunding:self.funding]) ?: @"unknown"],
+
+                       // Additional card details (alphabetical)
+                       [NSString stringWithFormat:@"country = %@", self.country],
+                       [NSString stringWithFormat:@"currency = %@", self.currency],
+                       [NSString stringWithFormat:@"dynamicLast4 = %@", self.dynamicLast4],
+                       [NSString stringWithFormat:@"isApplePayCard = %@", (self.isApplePayCard) ? @"YES" : @"NO"],
+                       [NSString stringWithFormat:@"metadata = %@", (self.metadata) ? @"<redacted>" : nil],
+
+                       // Cardholder details
+                       [NSString stringWithFormat:@"name = %@", (self.name) ? @"<redacted>" : nil],
+                       [NSString stringWithFormat:@"address = %@", (self.address) ? @"<redacted>" : nil],
+                       ];
+
+    return [NSString stringWithFormat:@"<%@>", [props componentsJoinedByString:@"; "]];
+}
+
+#pragma mark - STPAPIResponseDecodable
+
+- (NSString *)stripeObject {
+    return @"card";
+}
+
++ (NSArray *)requiredFields {
+    return @[@"id", @"last4", @"brand", @"exp_month", @"exp_year"];
+}
+
++ (nullable instancetype)decodedObjectFromAPIResponse:(nullable NSDictionary *)response {
+    NSDictionary *dict = [response stp_dictionaryByRemovingNullsValidatingRequiredFields:[self requiredFields]];
+    if (!dict) {
+        return nil;
     }
-    return NO;
+
+    STPCard *card = [self new];
+    card.address = [STPAddress new];
+
+    card.stripeID = dict[@"id"];
+    card.name = dict[@"name"];
+    card.last4 = dict[@"last4"];
+    card.dynamicLast4 = dict[@"dynamic_last4"];
+    card.brand = [self.class brandFromString:dict[@"brand"]];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated"
+    // This is only intended to be deprecated publicly.
+    // When removed from public header, can remove these pragmas
+    card.funding = [self.class fundingFromString:dict[@"funding"]];
+#pragma clang diagnostic pop
+
+    card.country = dict[@"country"];
+    card.currency = dict[@"currency"];
+    card.expMonth = [dict[@"exp_month"] intValue];
+    card.expYear = [dict[@"exp_year"] intValue];
+    card.metadata = [dict[@"metadata"] stp_dictionaryByRemovingNonStrings];
+
+    card.address.name = card.name;
+    card.address.line1 = dict[@"address_line1"];
+    card.address.line2 = dict[@"address_line2"];
+    card.address.city = dict[@"address_city"];
+    card.address.state = dict[@"address_state"];
+    card.address.postalCode = dict[@"address_zip"];
+    card.address.country = dict[@"address_country"];
+    
+    card.allResponseFields = dict;
+    return card;
 }
 
-+ (NSError *)createErrorWithMessage:(NSString *)userMessage
-                          parameter:(NSString *)parameter
-                      cardErrorCode:(NSString *)cardErrorCode
-                    devErrorMessage:(NSString *)devMessage {
-    return [[NSError alloc] initWithDomain:StripeDomain
-                                      code:STPCardError
-                                  userInfo:@{
-                                      NSLocalizedDescriptionKey: userMessage,
-                                      STPErrorParameterKey: parameter,
-                                      STPCardErrorCodeKey: cardErrorCode,
-                                      STPErrorMessageKey: devMessage
-                                  }];
+#pragma mark - STPPaymentMethod
+
+- (UIImage *)image {
+    return [STPImageLibrary brandImageForCardBrand:self.brand];
 }
 
-@end
+- (UIImage *)templateImage {
+    return [STPImageLibrary templatedBrandImageForCardBrand:self.brand];
+}
 
+- (NSString *)label {
+    NSString *brand = [self.class stringFromBrand:self.brand];
+    return [NSString stringWithFormat:@"%@ %@", brand, self.last4];
+}
 
-@implementation STPCard(PrivateMethods)
+#pragma mark - Deprecated methods
 
-- (instancetype)initWithAttributeDictionary:(NSDictionary *)attributeDictionary {
-    self = [self init];
-    
-    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-    
-    [attributeDictionary enumerateKeysAndObjectsUsingBlock:^(id key, id obj, __unused BOOL *stop) {
-        if (obj != [NSNull null]) {
-            dict[key] = obj;
-        }
-    }];
-    
+- (instancetype)initWithID:(NSString *)stripeID
+                     brand:(STPCardBrand)brand
+                     last4:(NSString *)last4
+                  expMonth:(NSUInteger)expMonth
+                   expYear:(NSUInteger)expYear
+                   funding:(STPCardFundingType)funding {
+    self = [super init];
     if (self) {
-        _cardId = dict[@"id"];
-        _number = dict[@"number"];
-        _cvc = dict[@"cvc"];
-        _name = dict[@"name"];
-        _last4 = dict[@"last4"];
-        _dynamicLast4 = dict[@"dynamic_last4"];
-        NSString *brand = dict[@"brand"] ?: dict[@"type"];
-        if ([brand isEqualToString:@"Visa"]) {
-            _brand = STPCardBrandVisa;
-        } else if ([brand isEqualToString:@"American Express"]) {
-            _brand = STPCardBrandAmex;
-        } else if ([brand isEqualToString:@"MasterCard"]) {
-            _brand = STPCardBrandMasterCard;
-        } else if ([brand isEqualToString:@"Discover"]) {
-            _brand = STPCardBrandDiscover;
-        } else if ([brand isEqualToString:@"JCB"]) {
-            _brand = STPCardBrandJCB;
-        } else if ([brand isEqualToString:@"Diners Club"]) {
-            _brand = STPCardBrandDinersClub;
-        } else {
-            _brand = STPCardBrandUnknown;
-        }
-        NSString *funding = dict[@"funding"];
-        if ([funding.lowercaseString isEqualToString:@"credit"]) {
-            _funding = STPCardFundingTypeCredit;
-        } else if ([funding.lowercaseString isEqualToString:@"debit"]) {
-            _funding = STPCardFundingTypeDebit;
-        } else if ([funding.lowercaseString isEqualToString:@"prepaid"]) {
-            _funding = STPCardFundingTypePrepaid;
-        } else {
-            _funding = STPCardFundingTypeOther;
-        }
-        _fingerprint = dict[@"fingerprint"];
-        _country = dict[@"country"];
-        _currency = dict[@"currency"];
-        // Support both camelCase and snake_case keys
-        _expMonth = [(dict[@"exp_month"] ?: dict[@"expMonth"])intValue];
-        _expYear = [(dict[@"exp_year"] ?: dict[@"expYear"])intValue];
-        _addressLine1 = dict[@"address_line1"] ?: dict[@"addressLine1"];
-        _addressLine2 = dict[@"address_line2"] ?: dict[@"addressLine2"];
-        _addressCity = dict[@"address_city"] ?: dict[@"addressCity"];
-        _addressState = dict[@"address_state"] ?: dict[@"addressState"];
-        _addressZip = dict[@"address_zip"] ?: dict[@"addressZip"];
-        _addressCountry = dict[@"address_country"] ?: dict[@"addressCountry"];
+        _stripeID = stripeID.copy;
+        _brand = brand;
+        _last4 = last4.copy;
+        _expMonth = expMonth;
+        _expYear = expYear;
+        _funding = funding;
+        _address = [STPAddress new];
     }
-    
     return self;
 }
 
+- (NSString *)cardId {
+    return self.stripeID;
+}
+
+- (nullable NSString *)addressLine1 {
+    return self.address.line1;
+}
+
+- (nullable NSString *)addressLine2 {
+    return self.address.line2;
+}
+
+- (nullable NSString *)addressZip {
+    return self.address.postalCode;
+}
+
+- (nullable NSString *)addressCity {
+    return self.address.city;
+}
+
+- (nullable NSString *)addressState {
+    return self.address.state;
+}
+
+- (nullable NSString *)addressCountry {
+    return self.address.country;
+}
+
 @end
 
-
+NS_ASSUME_NONNULL_END

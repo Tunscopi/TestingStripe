@@ -8,71 +8,117 @@
 
 #import <Foundation/Foundation.h>
 
+#import "STPBankAccountParams.h"
+#import "STPAPIResponseDecodable.h"
+#import "STPSourceProtocol.h"
 
-
-/**
- *  Representation of a user's credit card details. You can assemble these with information that your user enters and
- *  then create Stripe tokens with them using an STPAPIClient. @see https://stripe.com/docs/api#create_bank_account_token
- */
-@interface STPBankAccount : NSObject
+NS_ASSUME_NONNULL_BEGIN
 
 /**
- *  The account number for the bank account. Currently must be a checking account.
+ Possible validation states for a bank account.
  */
-@property (nonatomic, copy, nullable) NSString *accountNumber;
+typedef NS_ENUM(NSInteger, STPBankAccountStatus) {
+    /**
+     The account has had no activity or validation performed
+     */
+    STPBankAccountStatusNew,
+
+    /**
+     Stripe has determined this bank account exists.
+     */
+    STPBankAccountStatusValidated,
+
+    /**
+     Bank account verification has succeeded.
+     */
+    STPBankAccountStatusVerified,
+
+    /**
+     Verification for this bank account has failed.
+     */
+    STPBankAccountStatusVerificationFailed,
+
+    /**
+     A transfer sent to this bank account has failed.
+     */
+    STPBankAccountStatusErrored,
+};
 
 /**
- *  The routing number for the bank account. This should be the ACH routing number, not the wire routing number.
+ Representation of a user's bank account details that have been tokenized with
+ the Stripe API.
+
+ @see https://stripe.com/docs/api#bank_accounts
  */
-@property (nonatomic, copy, nullable) NSString *routingNumber;
+@interface STPBankAccount : NSObject<STPAPIResponseDecodable, STPSourceProtocol>
 
 /**
- *  The country the bank account is in.
+ You cannot directly instantiate an `STPBankAccount`. You should only use one 
+ that has been returned from an `STPAPIClient` callback.
  */
-@property (nonatomic, copy, nullable) NSString *country;
+- (instancetype)init __attribute__((unavailable("You cannot directly instantiate an STPBankAccount. You should only use one that has been returned from an STPAPIClient callback.")));
 
 /**
- *  The default currency for the bank account.
+ The routing number for the bank account. This should be the ACH routing number,
+ not the wire routing number.
  */
-@property (nonatomic, copy, nullable) NSString *currency;
-
-#pragma mark - These fields are only present on objects returned from the Stripe API.
-/**
- *  The Stripe ID for the bank account.
- */
-@property (nonatomic, readonly, nullable) NSString *bankAccountId;
+@property (nonatomic, nullable, readonly) NSString *routingNumber;
 
 /**
- *  The last 4 digits of the account number.
+ Two-letter ISO code representing the country the bank account is located in.
  */
-@property (nonatomic, readonly, nullable) NSString *last4;
+@property (nonatomic, readonly) NSString *country;
 
 /**
- *  The name of the bank that owns the account.
+ The default currency for the bank account.
  */
-@property (nonatomic, readonly, nullable) NSString *bankName;
+@property (nonatomic, readonly) NSString *currency;
 
 /**
- *  A proxy for the account number, this uniquely identifies the account and can be used to compare equality of different bank accounts.
+ The last 4 digits of the account number.
  */
-@property (nonatomic, readonly, nullable) NSString *fingerprint;
+@property (nonatomic, readonly) NSString *last4;
 
 /**
- *  Whether or not the bank account has been validated via microdeposits or other means.
+ The name of the bank that owns the account.
  */
-@property (nonatomic, readonly) BOOL validated;
+@property (nonatomic, readonly) NSString *bankName;
 
 /**
- *  Whether or not the bank account is currently disabled.
+ The name of the person or business that owns the bank account.
  */
-@property (nonatomic, readonly) BOOL disabled;
+@property (nonatomic, nullable, readonly) NSString *accountHolderName;
+
+/**
+ The type of entity that holds the account.
+ */
+@property (nonatomic, readonly) STPBankAccountHolderType accountHolderType;
+
+/**
+ A proxy for the account number, this uniquely identifies the account and can be 
+ used to compare equality of different bank accounts.
+ */
+@property (nonatomic, nullable, readonly) NSString *fingerprint;
+
+/**
+ A set of key/value pairs associated with the bank account object.
+
+ @see https://stripe.com/docs/api#metadata
+ */
+@property (nonatomic, copy, nullable, readonly) NSDictionary<NSString *, NSString *> *metadata;
+
+/**
+ The validation status of the bank account. @see STPBankAccountStatus
+ */
+@property (nonatomic, readonly) STPBankAccountStatus status;
+
+#pragma mark - Deprecated methods
+
+/**
+ The Stripe ID for the bank account.
+ */
+@property (nonatomic, readonly) NSString *bankAccountId DEPRECATED_MSG_ATTRIBUTE("Use stripeID (defined in STPSourceProtocol)");
 
 @end
 
-
-// This method is used internally by Stripe to deserialize API responses and exposed here for convenience and testing purposes only. You should not use it in your own code.
-@interface STPBankAccount (PrivateMethods)
-
-- (nonnull instancetype)initWithAttributeDictionary:(nonnull NSDictionary *)attributeDictionary;
-
-@end
+NS_ASSUME_NONNULL_END

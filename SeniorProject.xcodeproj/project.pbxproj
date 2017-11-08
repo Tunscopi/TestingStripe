@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		13488DB41FAEA1B100F51541 /* CheckoutRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13488DB31FAEA1B100F51541 /* CheckoutRowView.swift */; };
+		13488DB61FAEA21B00F51541 /* Buttons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13488DB51FAEA21B00F51541 /* Buttons.swift */; };
+		13488DB71FAEB8A800F51541 /* MyAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13488DAD1FAE5A0E00F51541 /* MyAPIClient.swift */; };
+		13488DB91FAEBA6500F51541 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13488DB81FAEBA6500F51541 /* SettingsViewController.swift */; };
+		1393B1F01FB2EB9D00D031F2 /* PerformPaymentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1393B1EF1FB2EB9D00D031F2 /* PerformPaymentViewController.swift */; };
 		207555EF1EA84548009E6D45 /* SubmitPaymentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 207555EE1EA84548009E6D45 /* SubmitPaymentViewController.swift */; };
 		207555F41EA8455C009E6D45 /* MostRecent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 207555F01EA8455C009E6D45 /* MostRecent.swift */; };
 		207555F51EA8455C009E6D45 /* TopDonors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 207555F11EA8455C009E6D45 /* TopDonors.swift */; };
@@ -36,6 +41,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		13488DAD1FAE5A0E00F51541 /* MyAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyAPIClient.swift; sourceTree = "<group>"; };
+		13488DB31FAEA1B100F51541 /* CheckoutRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckoutRowView.swift; sourceTree = "<group>"; };
+		13488DB51FAEA21B00F51541 /* Buttons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Buttons.swift; sourceTree = "<group>"; };
+		13488DB81FAEBA6500F51541 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		1393B1EF1FB2EB9D00D031F2 /* PerformPaymentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformPaymentViewController.swift; sourceTree = "<group>"; };
 		207555EE1EA84548009E6D45 /* SubmitPaymentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SubmitPaymentViewController.swift; sourceTree = "<group>"; };
 		207555F01EA8455C009E6D45 /* MostRecent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MostRecent.swift; sourceTree = "<group>"; };
 		207555F11EA8455C009E6D45 /* TopDonors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TopDonors.swift; sourceTree = "<group>"; };
@@ -92,6 +102,19 @@
 			name = Pods;
 			sourceTree = "<group>";
 		};
+		13CD3E231FAA6F6F00CD8C1E /* Stripe */ = {
+			isa = PBXGroup;
+			children = (
+				13488DAD1FAE5A0E00F51541 /* MyAPIClient.swift */,
+				13488DB31FAEA1B100F51541 /* CheckoutRowView.swift */,
+				13488DB51FAEA21B00F51541 /* Buttons.swift */,
+				13488DB81FAEBA6500F51541 /* SettingsViewController.swift */,
+				7E5CEBB21EAA141800495922 /* SubmitMoney.swift */,
+				1393B1EF1FB2EB9D00D031F2 /* PerformPaymentViewController.swift */,
+			);
+			name = Stripe;
+			sourceTree = "<group>";
+		};
 		7E01C3CE1DD8C5370075A001 = {
 			isa = PBXGroup;
 			children = (
@@ -113,6 +136,7 @@
 		7E01C3D91DD8C5380075A001 /* SeniorProject */ = {
 			isa = PBXGroup;
 			children = (
+				13CD3E231FAA6F6F00CD8C1E /* Stripe */,
 				7E5CEBB01EA9C6CB00495922 /* Cell */,
 				7E044CAE1DEB873700AD863A /* ExpandedVC */,
 				7E01C3DA1DD8C5380075A001 /* AppDelegate.swift */,
@@ -123,7 +147,6 @@
 				7E1042C11DE466A700A6EA95 /* Information.swift */,
 				9E4E824F1DF61FBF000209EC /* SearchTab.swift */,
 				9E4E824D1DF61F88000209EC /* SearchItemClass.swift */,
-				7E5CEBB21EAA141800495922 /* SubmitMoney.swift */,
 				207555F11EA8455C009E6D45 /* TopDonors.swift */,
 				207555F01EA8455C009E6D45 /* MostRecent.swift */,
 				7E29C1031DE163A4007637F8 /* ProfilePage.swift */,
@@ -268,7 +291,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 		B4289AB0843EA6432FC2317B /* [CP] Embed Pods Frameworks */ = {
@@ -294,7 +317,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				7E864E971E3EA53600F5F926 /* PushToFirebase.swift in Sources */,
+				13488DB41FAEA1B100F51541 /* CheckoutRowView.swift in Sources */,
 				7E1042C21DE466A700A6EA95 /* Information.swift in Sources */,
+				13488DB61FAEA21B00F51541 /* Buttons.swift in Sources */,
 				207555F41EA8455C009E6D45 /* MostRecent.swift in Sources */,
 				9E4E824E1DF61F88000209EC /* SearchItemClass.swift in Sources */,
 				7E29C1061DE2457A007637F8 /* NewsFeed.swift in Sources */,
@@ -308,10 +333,13 @@
 				7E29C1041DE163A4007637F8 /* ProfilePage.swift in Sources */,
 				7E044CB41DEB880F00AD863A /* ExpandedVC.swift in Sources */,
 				207555F61EA8455C009E6D45 /* MostRecentCollectionViewCell.swift in Sources */,
+				1393B1F01FB2EB9D00D031F2 /* PerformPaymentViewController.swift in Sources */,
+				13488DB71FAEB8A800F51541 /* MyAPIClient.swift in Sources */,
 				7E044CB31DEB880F00AD863A /* ExpandedVCCell.swift in Sources */,
 				7E044CB21DEB880F00AD863A /* DummyData.swift in Sources */,
 				207555F51EA8455C009E6D45 /* TopDonors.swift in Sources */,
 				9E0D3C2D1DF62EB600C168BD /* SearchTableViewCell.swift in Sources */,
+				13488DB91FAEBA6500F51541 /* SettingsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
