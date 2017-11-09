@@ -26,6 +26,8 @@ class PerformPaymentViewController: UIViewController, STPPaymentContextDelegate 
   let rowHeight: CGFloat = 44
   let activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: .gray)
   let numberFormatter: NumberFormatter
+  var organization = ""
+  var orgDisp = UILabel()
   
   var paymentInProgress: Bool = false {
     didSet{
@@ -43,14 +45,17 @@ class PerformPaymentViewController: UIViewController, STPPaymentContextDelegate 
     }
   }
   
-  init(donationAmount: Int, settings: Settings) {
+  init(donationAmount: Int, org:String, settings: Settings) {
     let stripePublishableKey = self.stripePublishableKey
     let backendBaseURL = self.backendBaseURL
     
     assert(stripePublishableKey.hasPrefix("pk_"), "stripe publishable key must be set at the top of this file to run app")
     assert(backendBaseURL != nil, "backendBaseURL must be set at the top of this file to run app")
     
+    self.organization = org
+    self.orgDisp.text = org
     self.theme = settings.theme
+    
     MyAPIClient.sharedClient.baseURLString = self.backendBaseURL
     
     
@@ -109,10 +114,10 @@ class PerformPaymentViewController: UIViewController, STPPaymentContextDelegate 
     self.activityIndicator.activityIndicatorViewStyle = red < 0.5 ? .white : .gray
     self.navigationItem.title = "Make a Donation"
 
-    //self.productImage.font = UIFont.systemFont(ofSize: 70)
     self.view.addSubview(self.donationRow)
     self.view.addSubview(self.paymentRow)
-    //self.view.addSubview(self.productImage)
+    self.view.addSubview(self.orgDisp)
+    self.orgDisp.font = UIFont.systemFont(ofSize: 20)
     self.view.addSubview(self.confirmButton)
     self.view.addSubview(self.activityIndicator)
     self.activityIndicator.alpha = 0
@@ -129,10 +134,10 @@ class PerformPaymentViewController: UIViewController, STPPaymentContextDelegate 
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     let width = self.view.bounds.width
-    //self.productImage.sizeToFit()
-    //self.productImage.center = CGPoint(x: width/2.0,
-      //                                 y: self.productImage.bounds.height/2.0 + rowHeight)
-    self.paymentRow.frame = CGRect(x: 0, y: 0 + self.navigationController!.navigationBar.frame.height + rowHeight,
+    self.orgDisp.sizeToFit()
+    self.orgDisp.center = CGPoint(x: width/2.0,
+                                       y: self.navigationController!.navigationBar.frame.height + self.orgDisp.bounds.height/2.0 + rowHeight)
+    self.paymentRow.frame = CGRect(x: 0, y: self.navigationController!.navigationBar.frame.height + self.orgDisp.frame.maxY + rowHeight,
                                    width: width, height: rowHeight)
     self.donationRow.frame = CGRect(x: 0, y: self.paymentRow.frame.maxY,
                                  width: width, height: rowHeight)
