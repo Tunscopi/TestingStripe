@@ -158,6 +158,11 @@ class PerformPaymentViewController: UIViewController, STPPaymentContextDelegate 
     dismiss(animated: true, completion: nil)
   }
   
+  func launchNewsFeed(){
+    self.presentingViewController?.presentingViewController?.presentingViewController?.dismiss(animated: true, completion: nil)
+    //let newsVC = NewsFeed()
+    //self.present(newsVC, animated: true, completion: nil)
+  }
   
   // MARK: STPPaymentContextDelegate Implementation
   func paymentContext(_ paymentContext: STPPaymentContext, didCreatePaymentResult paymentResult: STPPaymentResult, completion: @escaping STPErrorBlock) {
@@ -183,7 +188,9 @@ class PerformPaymentViewController: UIViewController, STPPaymentContextDelegate 
       return
     }
     let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
-    let action = UIAlertAction(title: "OK", style: .default, handler: nil)
+    let action = UIAlertAction(title: "OK", style: .default, handler: {(alert: UIAlertAction) -> Void in
+      self.launchNewsFeed()
+    })
     alertController.addAction(action)
     self.present(alertController, animated: true, completion: nil)
   }
